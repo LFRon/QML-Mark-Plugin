@@ -55,6 +55,7 @@ Flickable {
      */
     property int parseDelay: 0
     property bool _parsePending: false
+    property bool _loadingSource: false
 
     implicitHeight: contentHeight
     height: fitContent ? contentHeight : implicitHeight
@@ -565,10 +566,13 @@ Flickable {
         if (markdown === "") {
             // Clearing the document must not leave the previous tree
             // visible. Source loading clears markdown only as a first step;
-            // it assigns the parsed file tree immediately afterwards.
-            source = ""
+            // it assigns the parsed file tree immediately afterwards, so do
+            // not treat that internal clear as a user document reset.
             _parsePending = false
-            tree = null
+            if (!_loadingSource) {
+                source = ""
+                tree = null
+            }
             return
         }
         source = ""
@@ -583,11 +587,13 @@ Flickable {
     // 当 source 路径变化时自动加载
     onSourceChanged: {
         if (source !== "") {
+            _loadingSource = true
             markdown = ""
+            _loadingSource = false
             _parsePending = false
             var path = source
             if (path.indexOf("file:///") === 0) {
-                path = decodeURIComponent(path.substring(8))
+                path = decodeURIComponent(path.substring(7))
             }
             tree = _mark.parseFile(path)
         }

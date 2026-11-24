@@ -55,6 +55,15 @@ TestCase {
         }
     }
 
+    function test_source_file_loads() {
+        var item = renderComponent.createObject(this)
+        item.source = Qt.resolvedUrl("fixtures/source.md")
+        wait(40)
+        verify(item.contentHeight > 0)
+        verify(item.source !== "")
+        item.destroy()
+    }
+
     function test_clearing_markdown_clears_document() {
         var item = create("# visible")
         verify(item.contentHeight > 0)
