@@ -44,6 +44,17 @@ TestCase {
         }
     }
 
+    function collectFonts(item, out) {
+        if (!item || !item.children)
+            return
+        for (var i = 0; i < item.children.length; ++i) {
+            var child = item.children[i]
+            if (child.font !== undefined && child.horizontalAlignment !== undefined)
+                out.push({ bold: child.font.bold, alignment: child.horizontalAlignment })
+            collectFonts(child, out)
+        }
+    }
+
     function test_long_paragraph_wraps() {
         var item = create("这是一个很长的中文段落，用来验证自动换行是否正常工作。"
                           + "这是一个很长的中文段落，用来验证自动换行是否正常工作。"
@@ -64,6 +75,16 @@ TestCase {
         item.destroy()
     }
 
+    function test_table_header_is_bold() {
+        var item = create("| left | right |\n"
+                          + "|:--|--:|\n"
+                          + "| a | b |")
+        var out = []
+        collectFonts(item, out)
+        verify(out.filter(function(entry) { return entry.bold }).length >= 2)
+        item.destroy()
+    }
+
     function test_task_list_rows() {
         var item = create("- [x] done\n- [ ] todo\n- normal")
         verify(item.contentHeight > 30)
@@ -74,6 +95,16 @@ TestCase {
         var item = create("```cpp\nint main() { return 0; }\n```")
         compare(item.contentWidth, 240)
         verify(item.contentHeight > 20)
+        item.destroy()
+    }
+
+    function test_code_wrap_toggle() {
+        var item = create("```cpp\n"
+                          + "int main() { return 0; } // a long line that should not need wrapping\n"
+                          + "```")
+        item.codeWrap = false
+        wait(30)
+        compare(item.contentWidth, 240)
         item.destroy()
     }
 
