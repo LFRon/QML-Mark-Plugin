@@ -122,8 +122,8 @@ Flickable {
             property real  maxWidth: -1
             property real  maxHeight: -1
             property real  radius: 0
-            property color placeholderBg: markStyle.codeStyle.background
-            property color placeholderBorderColor: markStyle.tableStyle.borderColor
+            property color placeholderBg: "#f1f5f9"
+            property color placeholderBorderColor: "#e2e8f0"
             property color placeholderTextColor: markStyle.textColor
             property int   placeholderFontSize: markStyle.baseFontSize
         }
