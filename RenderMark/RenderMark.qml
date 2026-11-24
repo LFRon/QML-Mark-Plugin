@@ -645,6 +645,7 @@ Flickable {
                 model: root.tree && root.tree.root ? tree.root.children : []
 
                 delegate: MarkNodeComponent {
+                    id: markDelegate
                     required property var modelData
                     required property int index
 
@@ -658,7 +659,7 @@ Flickable {
 
                     Behavior on opacity {
                         SequentialAnimation {
-                            PauseAnimation { duration: Math.min(index * 40, 600) }
+                            PauseAnimation { duration: Math.min(markDelegate.index * 40, 600) }
                             NumberAnimation {
                                 duration: 250
                                 easing.type: Easing.OutQuad
