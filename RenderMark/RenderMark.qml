@@ -38,6 +38,16 @@ Flickable {
     /** @brief Wrap long lines inside fenced code blocks (default true). */
     property bool codeWrap: true
 
+    /**
+     * @brief Minimum interval between re-parses while markdown is streaming.
+     *
+     * 0 keeps the historical immediate behaviour. Chat clients can set e.g.
+     * 50 to coalesce token updates instead of rebuilding the AST for every
+     * character.
+     */
+    property int parseDelay: 0
+    property bool _parsePending: false
+
     implicitHeight: contentHeight
     height: fitContent ? contentHeight : implicitHeight
     interactive: !fitContent
@@ -528,11 +538,30 @@ Flickable {
         id: _mark
     }
 
+    // Coalesce streaming updates when requested; parseDelay 0 stays immediate.
+    Timer {
+        id: parseTimer
+        interval: Math.max(1, root.parseDelay)
+        repeat: true
+        running: root.parseDelay > 0
+        onTriggered: {
+            if (!root._parsePending)
+                return
+            root._parsePending = false
+            root.tree = _mark.parse(root.markdown)
+        }
+    }
+
     // 当 markdown 文本变化时自动解析
     onMarkdownChanged: {
         if (markdown !== "") {
             source = ""
-            tree = _mark.parse(markdown)
+            if (parseDelay > 0) {
+                _parsePending = true
+            } else {
+                _parsePending = false
+                tree = _mark.parse(markdown)
+            }
         }
     }
 
@@ -540,6 +569,7 @@ Flickable {
     onSourceChanged: {
         if (source !== "") {
             markdown = ""
+            _parsePending = false
             var path = source
             if (path.indexOf("file:///") === 0) {
                 path = decodeURIComponent(path.substring(8))
