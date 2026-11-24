@@ -118,22 +118,20 @@ TextEdit {
         }
 
         if (node.isImage && node.isImage()) {
+            // QML rich text can only resolve resource-style image URLs; file
+            // and network sources would become broken images. A paragraph
+            // containing just an image is handled by MarkNodeParagraph and
+            // MarkNodeImage instead. For a mixed text/image paragraph keep a
+            // discoverable link placeholder.
             var src = node.url || ""
             var alt = node.plainText ? node.plainText() : ""
             if (!isSafeImageSource(src))
                 return escapeHtml(alt || src)
             var resolved = resolveImageSource(src)
-            var maxWidth = renderMark ? Math.max(0, renderMark.width - 2) : 600
-            if (/^https?:\/\//i.test(resolved)) {
-                // Qt's rich text engine does not fetch network images. Keep
-                // the image discoverable without turning the chat into a
-                // network-loading surface; callers can cache it and rewrite
-                // the URL before rendering.
-                return "<a href=\"" + escapeAttr(resolved) + "\">[图片: "
-                    + escapeHtml(alt || resolved) + "]</a>"
-            }
-            return "<img src=\"" + escapeAttr(resolved) + "\" alt=\""
-                + escapeAttr(alt) + "\" width=\"" + maxWidth + "\"/>"
+            if (!renderMark || !renderMark.isSafeUrl(resolved))
+                return escapeHtml(alt || resolved)
+            return "<a href=\"" + escapeAttr(resolved) + "\">[图片: "
+                + escapeHtml(alt || resolved) + "]</a>"
         }
 
         if (node.isHtmlInline && node.isHtmlInline())
