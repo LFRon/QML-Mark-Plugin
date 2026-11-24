@@ -1,0 +1,95 @@
+import QtQuick
+import QtTest
+import RenderMark 1.0
+
+TestCase {
+    name: "RenderMarkRegression"
+    width: 400
+    height: 400
+
+    Component {
+        id: renderComponent
+        RenderMark {
+            width: 240
+            fitContent: true
+        }
+    }
+
+    function create(markdown) {
+        var item = renderComponent.createObject(this)
+        item.markdown = markdown
+        wait(80)
+        return item
+    }
+
+    function collectText(item, out) {
+        if (!item || !item.children)
+            return
+        for (var i = 0; i < item.children.length; ++i) {
+            var child = item.children[i]
+            if (child.text !== undefined && child.textFormat !== undefined)
+                out.push(child.text)
+            collectText(child, out)
+        }
+    }
+
+    function collectAlignment(item, out) {
+        if (!item || !item.children)
+            return
+        for (var i = 0; i < item.children.length; ++i) {
+            var child = item.children[i]
+            if (child.horizontalAlignment !== undefined)
+                out.push(child.horizontalAlignment)
+            collectAlignment(child, out)
+        }
+    }
+
+    function test_long_paragraph_wraps() {
+        var item = create("这是一个很长的中文段落，用来验证自动换行是否正常工作。"
+                          + "这是一个很长的中文段落，用来验证自动换行是否正常工作。"
+                          + "这是一个很长的中文段落，用来验证自动换行是否正常工作。")
+        compare(item.contentWidth, 240)
+        verify(item.contentHeight > 30)
+        item.destroy()
+    }
+
+    function test_table_alignment() {
+        var item = create("| left | center | right |\n"
+                          + "|:--|:--:|--:|\n"
+                          + "| a | b | c |")
+        var out = []
+        collectAlignment(item, out)
+        verify(out.indexOf(Text.AlignHCenter) >= 0)
+        verify(out.indexOf(Text.AlignRight) >= 0)
+        item.destroy()
+    }
+
+    function test_task_list_rows() {
+        var item = create("- [x] done\n- [ ] todo\n- normal")
+        verify(item.contentHeight > 30)
+        item.destroy()
+    }
+
+    function test_code_block_width() {
+        var item = create("```cpp\nint main() { return 0; }\n```")
+        compare(item.contentWidth, 240)
+        verify(item.contentHeight > 20)
+        item.destroy()
+    }
+
+    function test_raw_html_escaped() {
+        var item = create("<b>raw</b>")
+        var out = []
+        collectText(item, out)
+        verify(out.join("").indexOf("&lt;b&gt;raw&lt;/b&gt;") >= 0)
+        item.destroy()
+    }
+
+    function test_javascript_link_is_text() {
+        var item = create("[bad](javascript:alert(1))")
+        var out = []
+        collectText(item, out)
+        verify(out.join("").indexOf("javascript:") < 0)
+        item.destroy()
+    }
+}
