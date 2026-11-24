@@ -101,7 +101,7 @@ Rectangle {
         TextMetrics {
             id: codeMetrics
             font: codeEdit.font
-            text: root.code
+            text: root.wrapCode ? "" : root.code
         }
 
         Flickable {
