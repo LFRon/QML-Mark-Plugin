@@ -34,7 +34,7 @@ Loader {
         "table_row":           "tableRowNodeCallback",
         "table_cell":          "tableCellNodeCallback",
         "strong":              "strongNodeCallback",
-        "emphasis":            "emphasisNodeCallback",
+        "emph":                "emphasisNodeCallback",
         "strikethrough":       "strikethroughNodeCallback",
         "html_block":          "htmlBlockNodeCallback",
         "html_inline":         "htmlInlineNodeCallback",
