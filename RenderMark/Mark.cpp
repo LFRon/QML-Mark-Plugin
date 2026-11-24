@@ -26,7 +26,7 @@ static void setupParser(cmark_parser *parser)
 {
     attachSyntaxExtension(parser, "table");
     attachSyntaxExtension(parser, "strikethrough");
-    attachSyntaxExtension(parser, "autolinks");
+    attachSyntaxExtension(parser, "autolink");
     attachSyntaxExtension(parser, "tagfilter");
     attachSyntaxExtension(parser, "tasklist");
 }

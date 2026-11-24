@@ -159,6 +159,16 @@ TestCase {
         item.destroy()
     }
 
+    function test_gfm_autolink() {
+        var item = create("https://example.com and www.example.com")
+        var out = []
+        collectText(item, out)
+        var html = out.join("")
+        verify(html.indexOf("<a href=\"https://example.com\">") >= 0)
+        verify(html.indexOf("<a href=\"http://www.example.com\">") >= 0)
+        item.destroy()
+    }
+
     function test_javascript_link_is_text() {
         var item = create("[bad](javascript:alert(1))")
         var out = []
