@@ -117,6 +117,7 @@ Rectangle {
                 id: codeEdit
                 width: root.wrapCode ? codeFlick.width : Math.max(codeFlick.width, codeMetrics.advanceWidth + 2)
                 text: root.code
+                height: contentHeight
                 readOnly: true
                 selectByMouse: true
                 persistentSelection: true
