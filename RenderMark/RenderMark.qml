@@ -37,6 +37,7 @@ Flickable {
 
     implicitHeight: contentHeight
     height: fitContent ? contentHeight : implicitHeight
+    interactive: !fitContent
 
     /** @brief 源文件所在目录的 URL，用于解析图片等相对路径 */
     property url baseUrl: ""
