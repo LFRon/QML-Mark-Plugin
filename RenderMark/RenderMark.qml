@@ -561,6 +561,15 @@ Flickable {
         }
     }
 
+    // If throttling is turned off while a parse is pending, flush it now so
+    // changing the property cannot strand the previous tree indefinitely.
+    onParseDelayChanged: {
+        if (parseDelay === 0 && _parsePending && markdown !== "") {
+            _parsePending = false
+            tree = _mark.parse(markdown)
+        }
+    }
+
     // 当 markdown 文本变化时自动解析
     onMarkdownChanged: {
         if (markdown === "") {

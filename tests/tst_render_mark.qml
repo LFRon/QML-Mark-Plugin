@@ -74,6 +74,18 @@ TestCase {
         item.destroy()
     }
 
+    function test_disabling_parse_delay_flushes_pending_parse() {
+        var item = renderComponent.createObject(this)
+        item.parseDelay = 100
+        item.markdown = "# pending"
+        wait(10)
+        item.parseDelay = 0
+        wait(20)
+        verify(item.tree !== null)
+        verify(item.contentHeight > 0)
+        item.destroy()
+    }
+
     function test_long_paragraph_wraps() {
         var item = create("这是一个很长的中文段落，用来验证自动换行是否正常工作。"
                           + "这是一个很长的中文段落，用来验证自动换行是否正常工作。"
