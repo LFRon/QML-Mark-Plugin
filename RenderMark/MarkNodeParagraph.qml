@@ -50,7 +50,7 @@ Item {
     }
 
     width: parent ? parent.width : implicitWidth
-    implicitHeight: root.soleImageNode ? imageItem.height : inlineItem.height
+    implicitHeight: root.soleImageNode ? imageLoader.height : inlineItem.height
     height: implicitHeight
 
     MarkInlineText {
@@ -61,10 +61,16 @@ Item {
         renderMark: root.renderMark
     }
 
-    MarkNodeImage {
-        id: imageItem
-        visible: !!root.soleImageNode
-        astNode: root.soleImageNode
-        renderMark: root.renderMark
+    Loader {
+        id: imageLoader
+        active: !!root.soleImageNode
+        width: root.width
+        sourceComponent: Component {
+            MarkNodeImage {}
+        }
+        onLoaded: {
+            item.astNode = Qt.binding(function() { return root.soleImageNode })
+            item.renderMark = Qt.binding(function() { return root.renderMark })
+        }
     }
 }
