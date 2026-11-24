@@ -35,6 +35,9 @@ Flickable {
      */
     property bool fitContent: false
 
+    /** @brief Wrap long lines inside fenced code blocks (default true). */
+    property bool codeWrap: true
+
     implicitHeight: contentHeight
     height: fitContent ? contentHeight : implicitHeight
     interactive: !fitContent

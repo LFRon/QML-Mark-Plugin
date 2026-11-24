@@ -16,7 +16,7 @@ Rectangle {
 
     property var astNode: null
     property var renderMark: null
-    property bool wrapCode: true
+    property bool wrapCode: renderMark ? renderMark.codeWrap : true
 
     readonly property var astStyle: renderMark ? renderMark.style : null
     readonly property string code: root.astNode ? root.astNode.content : ""
