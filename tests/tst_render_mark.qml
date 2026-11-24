@@ -91,6 +91,18 @@ TestCase {
         item.destroy()
     }
 
+    function test_ordered_task_list_rows() {
+        var item = create("5. [x] done\n6. [ ] todo\n7. normal")
+        verify(item.contentHeight > 30)
+        item.destroy()
+    }
+
+    function test_nested_list_rows() {
+        var item = create("- one\n  - nested one\n  - nested two\n- two")
+        verify(item.contentHeight > 30)
+        item.destroy()
+    }
+
     function test_code_block_width() {
         var item = create("```cpp\nint main() { return 0; }\n```")
         compare(item.contentWidth, 240)
