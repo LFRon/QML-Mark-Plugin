@@ -1,7 +1,5 @@
 pragma ComponentBehavior: Bound
 
-import QtQuick
-
 /**
  * @brief Heading renderer.
  *
