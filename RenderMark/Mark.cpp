@@ -83,7 +83,24 @@ static MarkNode *nodeToMarkNode(cmark_node *node, QObject *parent)
         if (aligns && cols > 0) {
             QVariantList alignments;
             for (uint16_t i = 0; i < cols; ++i) {
-                alignments.append(static_cast<int>(aligns[i]));
+                // cmark-gfm stores alignments as 'l'/'c'/'r' (or 0 for the
+                // default). Normalize to 0=left, 1=center, 2=right so QML
+                // consumers do not depend on the C implementation character
+                // encoding.
+                int alignment = 0;
+                switch (aligns[i]) {
+                case 'c':
+                    alignment = 1;
+                    break;
+                case 'r':
+                    alignment = 2;
+                    break;
+                case 'l':
+                default:
+                    alignment = 0;
+                    break;
+                }
+                alignments.append(alignment);
             }
             markNode->setAlignments(alignments);
         }
