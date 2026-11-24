@@ -55,6 +55,16 @@ TestCase {
         }
     }
 
+    function test_clearing_markdown_clears_document() {
+        var item = create("# visible")
+        verify(item.contentHeight > 0)
+        item.markdown = ""
+        wait(30)
+        compare(item.contentHeight, 0)
+        verify(item.tree === null)
+        item.destroy()
+    }
+
     function test_long_paragraph_wraps() {
         var item = create("这是一个很长的中文段落，用来验证自动换行是否正常工作。"
                           + "这是一个很长的中文段落，用来验证自动换行是否正常工作。"

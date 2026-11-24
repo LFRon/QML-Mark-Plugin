@@ -562,14 +562,21 @@ Flickable {
 
     // 当 markdown 文本变化时自动解析
     onMarkdownChanged: {
-        if (markdown !== "") {
+        if (markdown === "") {
+            // Clearing the document must not leave the previous tree
+            // visible. Source loading clears markdown only as a first step;
+            // it assigns the parsed file tree immediately afterwards.
             source = ""
-            if (parseDelay > 0) {
-                _parsePending = true
-            } else {
-                _parsePending = false
-                tree = _mark.parse(markdown)
-            }
+            _parsePending = false
+            tree = null
+            return
+        }
+        source = ""
+        if (parseDelay > 0) {
+            _parsePending = true
+        } else {
+            _parsePending = false
+            tree = _mark.parse(markdown)
         }
     }
 
