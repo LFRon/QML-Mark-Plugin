@@ -28,8 +28,10 @@ Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
 
-    implicitWidth: cellText.implicitWidth + (root.astStyle ? root.astStyle.tableStyle.cellPadding * 2 : 16)
-    implicitHeight: cellText.height + (root.astStyle ? root.astStyle.tableStyle.cellPadding * 2 : 16)
+    implicitWidth: Math.max(0, cellText.implicitWidth)
+        + (root.astStyle ? root.astStyle.tableStyle.cellPadding * 2 : 16)
+    implicitHeight: cellText.height
+        + (root.astStyle ? root.astStyle.tableStyle.cellPadding * 2 : 16)
 
     color: root.isHeaderRow
         ? (root.astStyle ? root.astStyle.tableStyle.headerBg : "transparent")
@@ -41,7 +43,7 @@ Rectangle {
         id: cellText
         x: root.astStyle ? root.astStyle.tableStyle.cellPadding : 8
         y: root.astStyle ? root.astStyle.tableStyle.cellPadding : 8
-        width: root.width - x * 2
+        width: Math.max(0, root.width - x * 2)
         astNode: root.astNode
         renderMark: root.renderMark
         isTableCell: true
