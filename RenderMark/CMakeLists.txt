@@ -37,6 +37,8 @@ set(RENDERMARK_QML_FILES
     MarkNodeBlockQuote.qml
     MarkNodeThematicBreak.qml
     MarkNodeDocument.qml
+    MarkNodeParagraph.qml
+    MarkInlineText.qml
     MarkNodeHtmlBlock.qml
     MarkNodeFootnoteDefinition.qml
     MarkNodeSoftbreak.qml

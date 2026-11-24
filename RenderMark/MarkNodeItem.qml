@@ -22,6 +22,7 @@ Row {
     }
 
     spacing: root.astStyle ? root.astStyle.itemStyle.bulletRightMargin : 8
+    width: parent ? parent.width : implicitWidth
 
     // 计算当前 item 在父 list 中的索引，用于有序列表序号
     property int _itemIndex: {
@@ -65,6 +66,7 @@ Row {
 
     // 右侧内容
     MarkColumnNodeComponent {
+        width: Math.max(0, root.width - marker.width - root.spacing)
         astNode: root.astNode
         renderMark: root.renderMark
     }

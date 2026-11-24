@@ -25,6 +25,19 @@ Flickable {
     /** @brief 本地文件路径或 file:/// URL，设置后自动加载并渲染 */
     property string source: ""
 
+    /**
+     * @brief 让根容器的高度跟随内容高度。
+     *
+     * Chat lists must own the vertical scrolling; a nested Flickable with a
+     * fixed viewport would otherwise swallow wheel/touch gestures. Setting
+     * fitContent to true (together with interactive: false) turns this
+     * component into a content-sized view suitable for a ListView delegate.
+     */
+    property bool fitContent: false
+
+    implicitHeight: contentHeight
+    height: fitContent ? contentHeight : implicitHeight
+
     /** @brief 源文件所在目录的 URL，用于解析图片等相对路径 */
     property url baseUrl: ""
 
@@ -314,7 +327,7 @@ Flickable {
         // 内置默认组件实现
         Component { id: _defaultText;               MarkNodeText {} }
         Component { id: _defaultLink;               MarkNodeLink {} }
-        Component { id: _defaultParagraph;          MarkRowNodeComponent {} }
+        Component { id: _defaultParagraph;          MarkNodeParagraph {} }
         Component { id: _defaultHeading;            MarkNodeHeading {} }
         Component { id: _defaultList;               MarkColumnNodeComponent {} }
         Component { id: _defaultItem;               MarkNodeItem {} }
@@ -553,6 +566,27 @@ Flickable {
         contentY = Math.max(0, pos.y - 20);
     }
 
+    /**
+     * @brief Only allow schemes that are safe to hand to the desktop opener.
+     *
+     * The reference renderer (markdown-it) rejects javascript:, vbscript:,
+     * file: and most data: links. The chat surface is stricter and only opens
+     * web/mail links; Markdown that fails this test stays as plain text.
+     */
+    function isSafeUrl(url) {
+        if (url === undefined || url === null)
+            return false
+        var value = String(url).trim()
+        if (!value || /[\u0000-\u001f]/.test(value))
+            return false
+        return /^(https?:\/\/|mailto:)/i.test(value)
+    }
+
+    function openLink(url) {
+        if (isSafeUrl(url))
+            Qt.openUrlExternally(String(url).trim())
+    }
+
 
 
     // Flickable 内容区域
@@ -564,12 +598,12 @@ Flickable {
         id: contentRectangle
 
         color: root.bgColor
-        width: contentColumn.width
+        width: root.width
         height: contentColumn.height
 
         Column {
             id: contentColumn
-            width: childrenRect.width
+            width: root.width
             height: childrenRect.height
             spacing: 8
 
@@ -580,6 +614,7 @@ Flickable {
                     required property var modelData
                     required property int index
 
+                    width: root.width
                     astNode: modelData
                     renderMark: root
 
@@ -601,6 +636,6 @@ Flickable {
         }
     }
 
-    ScrollBar.vertical: ScrollBar {}
-    ScrollBar.horizontal: ScrollBar {}
+    ScrollBar.vertical: ScrollBar { visible: root.interactive }
+    ScrollBar.horizontal: ScrollBar { visible: root.interactive }
 }
