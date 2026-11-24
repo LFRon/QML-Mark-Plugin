@@ -68,6 +68,11 @@ int MarkNode::start() const
     return _start;
 }
 
+bool MarkNode::isTasklist() const
+{
+    return _type == "tasklist";
+}
+
 bool MarkNode::tasklistChecked() const
 {
     return _tasklistChecked;

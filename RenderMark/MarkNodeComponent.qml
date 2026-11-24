@@ -24,6 +24,7 @@ Loader {
         "image":               "imageNodeCallback",
         "list":                "listNodeCallback",
         "item":                "itemNodeCallback",
+        "tasklist":            "itemNodeCallback",
         "code_block":          "codeBlockNodeCallback",
         "code":                "codeNodeCallback",
         "block_quote":         "blockQuoteNodeCallback",
@@ -63,6 +64,7 @@ Loader {
         if (node.isDocument()) return c.document;
         if (node.isBlockQuote()) return c.blockQuote;
         if (node.isList()) return c.list;
+        if (node.isTasklist) return c.item;
         if (node.isItem()) return c.item;
         if (node.isCodeBlock()) return c.codeBlock;
         if (node.isParagraph()) return c.paragraph;

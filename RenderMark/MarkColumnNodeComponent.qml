@@ -25,6 +25,7 @@ Column {
 
         MarkNodeComponent {
             required property var modelData
+            width: root.width
             astNode: modelData
             renderMark: root.renderMark
         }
