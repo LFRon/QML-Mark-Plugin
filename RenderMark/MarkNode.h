@@ -223,4 +223,11 @@ private:
     int _columns = 0;             /**< 表格列数 */
     QVariantList _alignments;     /**< 表格列对齐方式 */
     bool _isHeader = false;       /**< 表格行是否为表头 */
+
+    mutable QVariantList _childrenCache; /**< cached QVariantList for QML */
+    mutable bool _childrenCacheDirty = true;
+    mutable QString _plainTextCache;     /**< cached recursive plain text */
+    mutable bool _plainTextCacheDirty = true;
+
+    void invalidateCaches();
 };
