@@ -39,6 +39,14 @@ Flickable {
     property bool codeWrap: true
 
     /**
+     * @brief Fade blocks in as they are created.
+     *
+     * Disable for live-token streaming where the opacity animation would make
+     * newly arrived text look delayed.
+     */
+    property bool animate: true
+
+    /**
      * @brief Minimum interval between re-parses while markdown is streaming.
      *
      * 0 keeps the historical immediate behaviour. Chat clients can set e.g.
@@ -653,11 +661,15 @@ Flickable {
                     astNode: modelData
                     renderMark: root
 
-                    opacity: 0
+                    opacity: root.animate ? 0 : 1
 
-                    Component.onCompleted: opacity = 1
+                    Component.onCompleted: {
+                        if (root.animate)
+                            opacity = 1
+                    }
 
                     Behavior on opacity {
+                        enabled: root.animate
                         SequentialAnimation {
                             PauseAnimation { duration: Math.min(markDelegate.index * 40, 600) }
                             NumberAnimation {
