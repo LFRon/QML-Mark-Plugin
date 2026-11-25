@@ -4,6 +4,23 @@ project(MarkQml VERSION 1.1.0 LANGUAGES CXX)
 
 find_package(Qt6 REQUIRED COMPONENTS Quick)
 
+# Optional native math renderer: JKQTMathText from JKQtPlotter.
+set(JKQTMATH_TEXT_ROOT "" CACHE PATH "Install prefix of JKQTMathText (JKQtPlotter)")
+set(RENDERMARK_ENABLE_MATH_TEXT OFF)
+if(JKQTMATH_TEXT_ROOT)
+    find_package(JKQTMathText6 CONFIG REQUIRED
+        PATHS "${JKQTMATH_TEXT_ROOT}/lib/cmake/JKQTPlotter6"
+        NO_DEFAULT_PATH)
+else()
+    find_package(JKQTMathText6 CONFIG QUIET)
+endif()
+if(TARGET JKQTPlotter::JKQTMathText)
+    set(RENDERMARK_ENABLE_MATH_TEXT ON)
+    message(STATUS "RenderMark: JKQTMathText enabled")
+else()
+    message(STATUS "RenderMark: JKQTMathText not found; math formulas will use the text fallback")
+endif()
+
 # Optional: build against the CJK-friendly cmark-gfm fork installed at this
 # prefix (for example cmark-gfm-cjk). When empty, the normal vcpkg/system
 # cmark-gfm package is used.

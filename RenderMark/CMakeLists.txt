@@ -46,18 +46,21 @@ set(RENDERMARK_QML_FILES
     MarkNodeHtmlInline.qml
     MarkNodeFootnoteReference.qml
     MarkNodeUnknown.qml
+    MarkNodeMathBlock.qml
 )
 
 set(RENDERMARK_HEADERS
     Mark.h
     MarkNode.h
     MarkTree.h
+    MathTextItem.h
 )
 
 set(RENDERMARK_SOURCES
     Mark.cpp
     MarkNode.cpp
     MarkTree.cpp
+    MathTextItem.cpp
 )
 
 qt_add_qml_module(RenderMark
@@ -84,6 +87,11 @@ target_link_libraries(RenderMark
         Qt6::Quick
         ${CMARK_LIBS}
 )
+
+if(RENDERMARK_ENABLE_MATH_TEXT)
+    target_link_libraries(RenderMark PUBLIC JKQTPlotter::JKQTMathText)
+    target_compile_definitions(RenderMark PUBLIC RENDERMARK_ENABLE_MATH_TEXT)
+endif()
 
 target_include_directories(RenderMark
     PUBLIC
@@ -212,6 +220,12 @@ else()
     set(RENDERMARK_CONFIG_CMARK_EXT_NAME "cmark-gfm-extensions")
     set(RENDERMARK_CONFIG_ABI_SUFFIX "")
     set(RENDERMARK_CONFIG_PLUGIN_NAME "RenderMarkplugin")
+endif()
+
+if(RENDERMARK_ENABLE_MATH_TEXT)
+    set(RENDERMARK_MATH_TEXT_DEP "JKQTPlotter::JKQTMathText")
+else()
+    set(RENDERMARK_MATH_TEXT_DEP "")
 endif()
 
 configure_package_config_file(

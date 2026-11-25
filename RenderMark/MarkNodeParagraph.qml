@@ -18,11 +18,42 @@ Item {
     property var renderMark: null
 
     readonly property var astStyle: renderMark ? renderMark.style : null
-    readonly property var soleImageNode: findSoleImage(root.astNode)
+    readonly property string soleMathFormula: findSoleMath(root.astNode)
+    readonly property var soleImageNode: root.soleMathFormula === ""
+        ? findSoleImage(root.astNode) : null
 
     function init(node, rm) {
         astNode = node
         renderMark = rm
+    }
+
+    function nodeText(node) {
+        if (!node)
+            return ""
+        if (node.isText && node.isText())
+            return node.content
+        if (node.isCode && node.isCode())
+            return node.content
+        if (node.isSoftbreak && node.isSoftbreak())
+            return "\n"
+        if (node.isLinebreak && node.isLinebreak())
+            return "\n"
+        var out = ""
+        if (node.children) {
+            for (var i = 0; i < node.children.length; ++i)
+                out += nodeText(node.children[i])
+        }
+        return out
+    }
+
+    function findSoleMath(node) {
+        if (!node)
+            return ""
+        var text = nodeText(node).trim()
+        if (text.length >= 4 && text.indexOf("$$") === 0
+                && text.lastIndexOf("$$") === text.length - 2)
+            return text.substring(2, text.length - 2).trim()
+        return ""
     }
 
     function findSoleImage(node) {
@@ -50,15 +81,31 @@ Item {
     }
 
     width: parent ? parent.width : implicitWidth
-    implicitHeight: root.soleImageNode ? imageLoader.height : inlineItem.height
+    implicitHeight: root.soleMathFormula !== ""
+        ? mathLoader.height
+        : (root.soleImageNode ? imageLoader.height : inlineItem.height)
     height: implicitHeight
 
     MarkInlineText {
         id: inlineItem
-        visible: !root.soleImageNode
+        visible: root.soleMathFormula === "" && !root.soleImageNode
         width: root.width
         astNode: root.astNode
         renderMark: root.renderMark
+    }
+
+    Loader {
+        id: mathLoader
+        active: root.soleMathFormula !== ""
+        width: root.width
+        sourceComponent: Component {
+            MarkNodeMathBlock {}
+        }
+        onLoaded: {
+            item.astNode = Qt.binding(function() { return root.astNode })
+            item.renderMark = Qt.binding(function() { return root.renderMark })
+            item.formula = Qt.binding(function() { return root.soleMathFormula })
+        }
     }
 
     Loader {
