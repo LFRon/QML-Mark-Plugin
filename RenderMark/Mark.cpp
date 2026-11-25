@@ -3,7 +3,10 @@
 #include "MarkNode.h"
 
 #include <QFile>
+#include <QHash>
+#include <QRegularExpression>
 #include <QTextStream>
+#include <QVector>
 
 #include <cmark-gfm.h>
 #include <cmark-gfm-core-extensions.h>
@@ -30,6 +33,111 @@ static void setupParser(cmark_parser *parser)
     attachSyntaxExtension(parser, "tagfilter");
     attachSyntaxExtension(parser, "tasklist");
 }
+
+namespace {
+
+struct MathPlaceholder
+{
+    QString token;
+    QString formula;
+};
+
+bool insideRanges(const QVector<QPair<int, int>> &ranges, int position)
+{
+    for (const auto &range : ranges) {
+        if (position >= range.first && position < range.second)
+            return true;
+    }
+    return false;
+}
+
+QVector<QPair<int, int>> fencedCodeRanges(const QString &markdown)
+{
+    QVector<QPair<int, int>> ranges;
+    const QStringList lines = markdown.split(QLatin1Char('\n'), Qt::KeepEmptyParts);
+    const QRegularExpression fenceRe(QStringLiteral("^\\s{0,3}(`{3,}|~{3,})"));
+
+    QString openMarker;
+    int openStart = 0;
+    int offset = 0;
+
+    for (const QString &line : lines) {
+        const QRegularExpressionMatch match = fenceRe.match(line);
+        if (openMarker.isEmpty()) {
+            if (match.hasMatch()) {
+                openMarker = match.captured(1);
+                openStart = offset;
+            }
+        } else if (match.hasMatch()) {
+            const QString marker = match.captured(1);
+            if (!marker.isEmpty() && marker.at(0) == openMarker.at(0)
+                && marker.size() >= openMarker.size()
+                && line.mid(match.capturedEnd(1)).trimmed().isEmpty()) {
+                ranges.append(qMakePair(openStart, offset + line.size()));
+                openMarker.clear();
+            }
+        }
+        offset += line.size() + 1;
+    }
+
+    if (!openMarker.isEmpty())
+        ranges.append(qMakePair(openStart, markdown.size()));
+    return ranges;
+}
+
+QString protectMath(const QString &markdown, QHash<QString, QString> &replacements)
+{
+    const QRegularExpression mathRe(QStringLiteral(R"(\$\$([\s\S]*?)\$\$|\\\[([\s\S]*?)\\\])"));
+    const QVector<QPair<int, int>> codeRanges = fencedCodeRanges(markdown);
+
+    QString result;
+    result.reserve(markdown.size());
+    int last = 0;
+    int index = 0;
+
+    auto it = mathRe.globalMatch(markdown);
+    while (it.hasNext()) {
+        const QRegularExpressionMatch match = it.next();
+        if (insideRanges(codeRanges, match.capturedStart()))
+            continue;
+
+        QString formula = match.captured(1);
+        if (formula.isNull())
+            formula = match.captured(2);
+        if (formula.isNull())
+            continue;
+
+        const QString token = QStringLiteral("\xEE\x80\x80M%1\xEE\x80\x81").arg(index++);
+        replacements.insert(token, QStringLiteral("$$%1$$").arg(formula));
+        result += markdown.mid(last, match.capturedStart() - last);
+        result += token;
+        last = match.capturedEnd();
+    }
+
+    result += markdown.mid(last);
+    return result;
+}
+
+void restoreMath(MarkNode *node, const QHash<QString, QString> &replacements)
+{
+    if (!node)
+        return;
+
+    if (node->isText() || node->isCode()) {
+        QString content = node->content();
+        for (auto it = replacements.cbegin(); it != replacements.cend(); ++it)
+            content.replace(it.key(), it.value());
+        node->setContent(content);
+    }
+
+    const QVariantList children = node->children();
+    for (const QVariant &child : children) {
+        if (auto *childNode = child.value<MarkNode *>())
+            restoreMath(childNode, replacements);
+    }
+}
+
+} // namespace
 
 /**
  * @brief 将 cmark AST 节点递归转换为 MarkNode
@@ -178,6 +286,9 @@ MarkTree *Mark::parse(const QString &markdown) const
         return tree;
     }
 
+    QHash<QString, QString> mathReplacements;
+    const QString protectedMarkdown = protectMath(markdown, mathReplacements);
+
     cmark_parser *parser = cmark_parser_new(_options);
     if (!parser) {
         return tree;
@@ -185,12 +296,15 @@ MarkTree *Mark::parse(const QString &markdown) const
 
     setupParser(parser);
 
-    const QByteArray utf8 = markdown.toUtf8();
+    const QByteArray utf8 = protectedMarkdown.toUtf8();
     cmark_parser_feed(parser, utf8.constData(), utf8.size());
     cmark_node *doc = cmark_parser_finish(parser);
 
     if (doc) {
-        tree->setRoot(nodeToMarkNode(doc, tree));
+        MarkNode *root = nodeToMarkNode(doc, tree);
+        if (!mathReplacements.isEmpty())
+            restoreMath(root, mathReplacements);
+        tree->setRoot(root);
         cmark_node_free(doc);
     }
 

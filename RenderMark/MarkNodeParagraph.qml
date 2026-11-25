@@ -33,7 +33,7 @@ Item {
         if (node.isText && node.isText())
             return node.content
         if (node.isCode && node.isCode())
-            return node.content
+            return "\u0000"
         if (node.isSoftbreak && node.isSoftbreak())
             return "\n"
         if (node.isLinebreak && node.isLinebreak())
@@ -50,6 +50,8 @@ Item {
         if (!node)
             return ""
         var text = nodeText(node).trim()
+        if (text.indexOf("\u0000") >= 0)
+            return ""
         if (text.length >= 4 && text.indexOf("$$") === 0
                 && text.lastIndexOf("$$") === text.length - 2)
             return text.substring(2, text.length - 2).trim()
