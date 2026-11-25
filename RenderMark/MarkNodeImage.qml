@@ -72,6 +72,10 @@ Item {
                 if (!root.astNode)
                     return ""
                 var url = root.astNode.url
+                if (!url)
+                    return ""
+                if (root.renderMark && !root.renderMark.isSafeImageUrl(url))
+                    return ""
                 if (url.indexOf("://") === -1) {
                     if (root.renderMark && root.renderMark.baseUrl) {
                         var base = root.renderMark.baseUrl.toString()

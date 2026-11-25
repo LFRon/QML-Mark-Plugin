@@ -552,7 +552,7 @@ Flickable {
         id: parseTimer
         interval: Math.max(1, root.parseDelay)
         repeat: true
-        running: root.parseDelay > 0
+        running: root.parseDelay > 0 && root._parsePending
         onTriggered: {
             if (!root._parsePending)
                 return
@@ -602,7 +602,11 @@ Flickable {
             _parsePending = false
             var path = source
             if (path.indexOf("file:///") === 0) {
-                path = decodeURIComponent(path.substring(7))
+                try {
+                    path = decodeURIComponent(path.substring(7))
+                } catch (error) {
+                    path = path.substring(7)
+                }
             }
             tree = _mark.parseFile(path)
         }
@@ -649,6 +653,29 @@ Flickable {
     function openLink(url) {
         if (isSafeUrl(url))
             Qt.openUrlExternally(String(url).trim())
+    }
+
+    /**
+     * @brief Only allow image schemes that cannot execute code.
+     *
+     * Remote and local images are intentional, but arbitrary URL schemes must
+     * not be handed to the QML image loader. Relative paths remain valid and
+     * are resolved against baseUrl by the image components.
+     */
+    function isSafeImageUrl(url) {
+        if (url === undefined || url === null)
+            return false
+        var value = String(url).trim()
+        if (!value || /[\u0000-\u001f]/.test(value))
+            return false
+        var match = value.match(/^([a-z][a-z0-9+.-]*):/i)
+        if (!match)
+            return true
+        var scheme = match[1].toLowerCase()
+        if (scheme === "http" || scheme === "https"
+                || scheme === "file" || scheme === "qrc")
+            return true
+        return scheme === "data" && /^data:image\//i.test(value)
     }
 
 

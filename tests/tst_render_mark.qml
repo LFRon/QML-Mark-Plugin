@@ -169,6 +169,49 @@ TestCase {
         item.destroy()
     }
 
+    function collectImages(item, out) {
+        if (!item || !item.children)
+            return
+        for (var i = 0; i < item.children.length; ++i) {
+            var child = item.children[i]
+            if (child.source !== undefined && child.fillMode !== undefined)
+                out.push(child)
+            collectImages(child, out)
+        }
+    }
+
+    function test_image_url_schemes() {
+        var item = create("")
+        verify(item.isSafeImageUrl("https://example.com/a.png"))
+        verify(item.isSafeImageUrl("file:///tmp/a.png"))
+        verify(item.isSafeImageUrl("qrc:/a.png"))
+        verify(item.isSafeImageUrl("data:image/png;base64,AAAA"))
+        verify(item.isSafeImageUrl("images/a.png"))
+        verify(!item.isSafeImageUrl("javascript:alert(1)"))
+        verify(!item.isSafeImageUrl("ftp://example.com/a.png"))
+        verify(!item.isSafeImageUrl("data:text/html,<script>"))
+        verify(!item.isSafeImageUrl(""))
+        item.destroy()
+    }
+
+    function test_unsafe_image_source_is_not_loaded() {
+        var item = create("![x](javascript:alert(1))")
+        var images = []
+        collectImages(item, images)
+        compare(images.length, 1)
+        compare(String(images[0].source), "")
+        item.destroy()
+    }
+
+    function test_malformed_file_url_does_not_throw() {
+        var item = renderComponent.createObject(this)
+        item.source = "file:///tmp/%ZZ-missing.md"
+        wait(30)
+        verify(item.tree !== null)
+        verify(item.tree.root === null)
+        item.destroy()
+    }
+
     function test_javascript_link_is_text() {
         var item = create("[bad](javascript:alert(1))")
         var out = []
