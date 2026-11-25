@@ -28,6 +28,27 @@ TestCase {
         }
     }
 
+    function collectText(item, out) {
+        if (!item || !item.children)
+            return
+        for (var i = 0; i < item.children.length; ++i) {
+            var child = item.children[i]
+            if (child.text !== undefined && child.textFormat !== undefined)
+                out.push(child.text)
+            collectText(child, out)
+        }
+    }
+
+    function findNodeType(node, type, out) {
+        if (!node)
+            return
+        if (node.type === type)
+            out.push(node)
+        var children = node.children || []
+        for (var i = 0; i < children.length; ++i)
+            findNodeType(children[i], type, out)
+    }
+
     function render(markdown) {
         var item = renderComponent.createObject(this)
         item.markdown = markdown
@@ -71,6 +92,37 @@ TestCase {
         var found = []
         findMath(item, found)
         compare(found.length, 0)
+        item.destroy()
+    }
+
+    function test_inline_code_is_not_math() {
+        var item = render("`$$a**b**$$`")
+        var found = []
+        findMath(item, found)
+        compare(found.length, 0)
+        var texts = []
+        collectText(item, texts)
+        verify(texts.join("").indexOf("$$a**b**$$") >= 0)
+        item.destroy()
+    }
+
+    function test_indented_code_is_not_math() {
+        var item = render("    $$a**b**$$\n")
+        var found = []
+        findMath(item, found)
+        compare(found.length, 0)
+        var texts = []
+        collectText(item, texts)
+        verify(texts.join("").indexOf("$$a**b**$$") >= 0)
+        item.destroy()
+    }
+
+    function test_link_destination_is_restored() {
+        var item = render("[x](https://example.com/$$a$$)")
+        var links = []
+        findNodeType(item.tree.root, "link", links)
+        compare(links.length, 1)
+        compare(links[0].url, "https://example.com/$$a$$")
         item.destroy()
     }
 
