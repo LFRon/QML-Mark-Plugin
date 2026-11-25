@@ -46,6 +46,32 @@ Item {
         return out
     }
 
+    function blockQuoteDepth(node) {
+        var depth = 0
+        var parent = node ? node.parentNode : null
+        while (parent) {
+            if (parent.isBlockQuote && parent.isBlockQuote())
+                ++depth
+            parent = parent.parentNode
+        }
+        return depth
+    }
+
+    function stripBlockQuoteMarkers(text, depth) {
+        if (depth <= 0)
+            return text
+        var lines = text.split("\n")
+        for (var i = 0; i < lines.length; ++i) {
+            for (var level = 0; level < depth; ++level) {
+                var match = lines[i].match(/^\s*> ?/)
+                if (!match)
+                    break
+                lines[i] = lines[i].substring(match[0].length)
+            }
+        }
+        return lines.join("\n").trim()
+    }
+
     function findSoleMath(node) {
         if (!node)
             return ""
@@ -54,7 +80,8 @@ Item {
             return ""
         if (text.length >= 4 && text.indexOf("$$") === 0
                 && text.lastIndexOf("$$") === text.length - 2)
-            return text.substring(2, text.length - 2).trim()
+            return stripBlockQuoteMarkers(text.substring(2, text.length - 2).trim(),
+                                         blockQuoteDepth(node))
         return ""
     }
 

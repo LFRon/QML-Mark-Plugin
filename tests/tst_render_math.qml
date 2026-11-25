@@ -87,6 +87,16 @@ TestCase {
         item.destroy()
     }
 
+    function test_blockquote_math_has_no_container_markers() {
+        var item = render("> $$\nx+y\n$$")
+        var found = []
+        findMath(item, found)
+        verify(found.length > 0)
+        compare(found[0].latex.indexOf(">"), -1)
+        verify(found[0].implicitWidth > 0)
+        item.destroy()
+    }
+
     function test_fenced_code_is_not_math() {
         var item = render("```\n$$a**b**$$\n```")
         var found = []
