@@ -47,6 +47,33 @@ TestCase {
         item.destroy()
     }
 
+    function test_display_math_bracket() {
+        var item = render("\\[\na^2+b^2=c^2\n\\]")
+        var found = []
+        findMath(item, found)
+        verify(found.length > 0)
+        verify(found[0].implicitWidth > 0)
+        verify(found[0].error === "")
+        item.destroy()
+    }
+
+    function test_math_preserves_latex_escapes() {
+        var item = render("$$\n\\int_0^1 x^2\\,dx\\n$$")
+        var found = []
+        findMath(item, found)
+        verify(found.length > 0)
+        verify(found[0].latex.indexOf("\\,") >= 0)
+        item.destroy()
+    }
+
+    function test_fenced_code_is_not_math() {
+        var item = render("```\n$$a**b**$$\n```")
+        var found = []
+        findMath(item, found)
+        compare(found.length, 0)
+        item.destroy()
+    }
+
     function test_math_does_not_display_delimiters() {
         var item = render("$$\na+b\n$$")
         var found = []
