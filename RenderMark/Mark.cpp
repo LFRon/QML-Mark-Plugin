@@ -121,12 +121,32 @@ QString protectMath(const QString &markdown, QHash<QString, QString> &replacemen
 
 QString restorePlaceholders(const QString &text, const QHash<QString, QString> &replacements)
 {
-    if (!text.contains(QChar(0xE000)))
+    int marker = text.indexOf(QChar(0xE000));
+    if (marker < 0)
         return text;
 
-    QString restored = text;
-    for (auto it = replacements.cbegin(); it != replacements.cend(); ++it)
-        restored.replace(it.key(), it.value());
+    QString restored;
+    restored.reserve(text.size());
+    int last = 0;
+
+    while (marker >= 0) {
+        const int end = text.indexOf(QChar(0xE001), marker + 1);
+        if (end < 0)
+            break;
+
+        const auto it = replacements.constFind(text.mid(marker, end - marker + 1));
+        if (it != replacements.cend()) {
+            restored += text.mid(last, marker - last);
+            restored += it.value();
+            last = end + 1;
+        }
+        marker = text.indexOf(QChar(0xE000), end + 1);
+    }
+
+    if (last == 0)
+        return text;
+
+    restored += text.mid(last);
     return restored;
 }
 

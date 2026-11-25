@@ -173,6 +173,22 @@ TestCase {
         item.destroy()
     }
 
+    function test_many_formulas_are_restored() {
+        var markdown = ""
+        for (var i = 0; i < 20; ++i)
+            markdown += "$$\nx_" + i + "\n$$\n\n"
+        var item = render(markdown)
+        var found = []
+        findMath(item, found)
+        compare(found.length, 20)
+        for (var j = 0; j < found.length; ++j) {
+            verify(found[j].latex.indexOf("x_" + j) >= 0)
+            verify(found[j].latex.indexOf("$$") < 0)
+            verify(found[j].implicitWidth > 0)
+        }
+        item.destroy()
+    }
+
     function test_math_does_not_display_delimiters() {
         var item = render("$$\na+b\n$$")
         var found = []
