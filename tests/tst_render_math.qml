@@ -136,6 +136,43 @@ TestCase {
         item.destroy()
     }
 
+    function test_oversized_formula_is_bounded() {
+        var item = render("$$\n" + "x+".repeat(5000) + "x\n$$")
+        var found = []
+        findMath(item, found)
+        verify(found.length > 0)
+        verify(found[0].implicitWidth > 0)
+        verify(found[0].implicitWidth <= 4096)
+        verify(found[0].implicitHeight > 0)
+        verify(found[0].implicitHeight <= 4096)
+        item.destroy()
+    }
+
+    function test_very_wide_formula_is_bounded() {
+        var item = render("$$\n\\mathrm{" + "x".repeat(2000) + "}\n$$")
+        var found = []
+        findMath(item, found)
+        verify(found.length > 0)
+        verify(found[0].implicitWidth > 0)
+        verify(found[0].implicitWidth <= 4096)
+        verify(found[0].implicitHeight > 0)
+        verify(found[0].implicitHeight <= 4096)
+        item.destroy()
+    }
+
+    function test_deeply_nested_formula_is_bounded() {
+        var latex = "\\sqrt{".repeat(200) + "x" + "}".repeat(200)
+        var item = render("$$\n" + latex + "\n$$")
+        var found = []
+        findMath(item, found)
+        verify(found.length > 0)
+        verify(found[0].implicitWidth > 0)
+        verify(found[0].implicitWidth <= 4096)
+        verify(found[0].implicitHeight > 0)
+        verify(found[0].implicitHeight <= 4096)
+        item.destroy()
+    }
+
     function test_math_does_not_display_delimiters() {
         var item = render("$$\na+b\n$$")
         var found = []

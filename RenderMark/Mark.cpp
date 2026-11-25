@@ -121,6 +121,9 @@ QString protectMath(const QString &markdown, QHash<QString, QString> &replacemen
 
 QString restorePlaceholders(const QString &text, const QHash<QString, QString> &replacements)
 {
+    if (!text.contains(QChar(0xE000)))
+        return text;
+
     QString restored = text;
     for (auto it = replacements.cbegin(); it != replacements.cend(); ++it)
         restored.replace(it.key(), it.value());
